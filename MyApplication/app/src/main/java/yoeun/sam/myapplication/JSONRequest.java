@@ -11,10 +11,14 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 
@@ -30,11 +34,13 @@ import java.util.List;
 
 public class JSONRequest {
 
-    static float LINE_WIDTH =20;
+    static float LINE_WIDTH =50;
     static String LINE_COLOR ="#FF0000";
 
-    public static PolylineOptions GetDirection(final Context context, final GoogleMap mMap, String origin, String destination){
+    public static PolylineOptions GetDirection(final Context context, final GoogleMap mMap, final String origin, final String destination){
         final PolylineOptions[] polyline = new PolylineOptions[1];
+
+
 
         RequestQueue queue = Volley.newRequestQueue(context);
         String url = "https://maps.googleapis.com/maps/api/directions/json?origin=" + origin + "&destination=" + destination + "&key=AIzaSyDZX40EuY1U9PsnHdtJb60AamHBKPeoltM";
@@ -43,6 +49,25 @@ public class JSONRequest {
             public void onResponse(String response) {
                 Log.d("Volley: ", "response success");
                 Log.d("Volley: ", response.toString());
+
+                String origins[]=origin.split(",");
+
+                LatLng originLat =new LatLng(Double.parseDouble(origins[0]),Double.parseDouble(origins[1]));
+
+                MarkerOptions m = new MarkerOptions()
+                        .position(originLat)
+                        .title("Origin");
+                String destinations[]=destination.split(",");
+
+                MarkerOptions des = new MarkerOptions()
+                        .position(new LatLng(Double.parseDouble(destinations[0]),Double.parseDouble(destinations[1])))
+                        .title("Destination");
+
+                mMap.addMarker(m);
+                mMap.addMarker(des);
+
+
+
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -73,8 +98,16 @@ public class JSONRequest {
                         builder.include(point);
                     }
 
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 200));
+//                    mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 20));
                     polyline[0] =polylineOptions;
+
+
+//                    CameraPosition cameraPosition = new CameraPosition.Builder()
+//                            .zoom(16)
+//                            .tilt(45)
+//                            .bearing(20)
+//                            .build();
+
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -92,6 +125,11 @@ public class JSONRequest {
 
         queue.add(stringRequest);
         PolylineOptions polylineOptions=polyline[0];
+
+
+
+
+
         return polylineOptions;
     }
 }
